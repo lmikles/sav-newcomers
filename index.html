@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAVN Historic District Walking Group</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --moss:    #4a5c3f;
+      --sand:    #f2ede4;
+      --clay:    #b5651d;
+      --cream:   #faf7f2;
+      --dark:    #2b2b2b;
+      --light-moss: #e8ede4;
+    }
+
+    body {
+      background-color: var(--cream);
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd8cf;
+      border-radius: 2px;
+      padding: 3rem 2.5rem;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    .ornament {
+      color: var(--moss);
+      font-size: 1.2rem;
+      letter-spacing: 0.4em;
+      margin-bottom: 1.2rem;
+      opacity: 0.6;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--moss);
+      line-height: 1.3;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 2.4rem;
+    }
+
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: var(--clay);
+      margin: 0 auto 2.4rem;
+    }
+
+    .status {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 2rem;
+      min-height: 1.2em;
+    }
+
+    .status.error { color: #c0392b; }
+    .status.success { color: var(--moss); }
+
+    .btn {
+      display: inline-block;
+      background: var(--moss);
+      color: white;
+      font-family: 'Lato', sans-serif;
+      font-weight: 400;
+      font-size: 0.85rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 1rem 2.4rem;
+      border-radius: 1px;
+      transition: background 0.2s ease, transform 0.1s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn:hover { background: #3a4a30; }
+    .btn:active { transform: scale(0.98); }
+    .btn.loading { background: #aaa; pointer-events: none; }
+
+    .member-count {
+      margin-top: 1.8rem;
+      font-size: 0.78rem;
+      color: #bbb;
+      letter-spacing: 0.05em;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      font-size: 0.72rem;
+      color: #ccc;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="ornament">&#8212; &#9670; &#8212;</div>
+    <h1>SAVN Historic District<br>Walking Group</h1>
+    <p class="subtitle">Member Communications</p>
+    <div class="divider"></div>
+
+    <p class="status" id="status">Loading member list...</p>
+
+    <a class="btn loading" id="emailBtn" href="#">Compose Group Email</a>
+
+    <p class="member-count" id="memberCount"></p>
+  </div>
+
+  <p class="footer">Updates automatically when the member list changes</p>
+
+  <script>
+    // -------------------------------------------------------
+    // REPLACE THIS with your Google Sheet ID
+    // It's the long string in your sheet's URL between /d/ and /edit
+    // -------------------------------------------------------
+    const SHEET_ID = '2PACX-1vQdLzK0qdP8bIteOx3qpXEgjZ36jJSfc-kfU8HaTAyY1qDVT95W8zK24adY3AphLWA5Szx_nMXUP67Y';
+    const SHEET_NAME = 'Sheet1';
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+
+    const btn = document.getElementById('emailBtn');
+    const status = document.getElementById('status');
+    const memberCount = document.getElementById('memberCount');
+
+    async function loadEmails() {
+      try {
+        const res = await fetch(CSV_URL);
+        if (!res.ok) throw new Error('Could not load sheet');
+        const text = await res.text();
+
+        const rows = text.split('\n').map(r => r.split(','));
+        // Email is column C (index 2), skip header rows (first 4)
+        const emails = rows
+          .slice(4)
+          .map(r => r[2]?.replace(/"/g, '').trim())
+          .filter(e => e && e.includes('@'));
+
+        if (emails.length === 0) throw new Error('No emails found');
+
+        const mailto = `mailto:?bcc=${emails.join(',')}&subject=SAVN%20Historic%20District%20Walking%20Group`;
+        btn.href = mailto;
+        btn.classList.remove('loading');
+        status.textContent = 'Tap below to open your email app with all members in BCC.';
+        status.className = 'status success';
+        memberCount.textContent = `${emails.length} members loaded`;
+
+      } catch (err) {
+        status.textContent = 'Could not load member list. Make sure the sheet is published.';
+        status.className = 'status error';
+        btn.textContent = 'Unavailable';
+      }
+    }
+
+    loadEmails();
+  </script>
+
+</body>
+</html>
