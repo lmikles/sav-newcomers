@@ -164,7 +164,7 @@
 
         if (emails.length === 0) throw new Error('No emails found');
 
-        const mailto = `mailto:?bcc=${emails.join(',')}&subject=SAVN%20Historic%20District%20Walking%20Group`;
+        const mailto = `mailto:?bcc=${emails.join(',')}&subject=SAVN%20History%20Book%20Club`;
         btn.href = mailto;
         btn.classList.remove('loading');
         status.textContent = 'Tap below to open your email app with all members in BCC.';
